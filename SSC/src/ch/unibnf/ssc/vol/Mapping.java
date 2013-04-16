@@ -4,12 +4,11 @@ import java.util.Random;
 
 public class Mapping {
 
-	public static final String[] KEYS = { "0", "1", "2", "3", "4", "5", "6",
-			"7", "8", "9" };
-	public static final int NUM_PRODUCERS = 2;
-	public static final int NUM_CONSUMERS = 2;
-	public static final int NUM_WRITES = 2;
-	public static final int NUM_READS = 4;
+	public static final String[] KEYS = Config.KEYS_1;
+	public static final int NUM_PRODUCERS = 8;
+	public static final int NUM_CONSUMERS = 8;
+	public static final int NUM_WRITES = 8;
+	public static final int NUM_READS = 100;
 
 	/**
 	 * @param args
@@ -31,38 +30,30 @@ public class Mapping {
 		System.out.println("<<< Run benchmark");
 	}
 
-	private final Pair[] pairs;
-
-	public Mapping() {
-		this.pairs = new Pair[KEYS.length];
-		this.createPairs();
-	}
-
-	private void createPairs() {
-		for (int i = 0; i < KEYS.length; i++) {
-			this.pairs[i] = new Pair(KEYS[i]);
-		}
-	}
+	private final Pair[] pairs = { new Pair(KEYS[0]), new Pair(KEYS[1]),
+			new Pair(KEYS[2]), new Pair(KEYS[3]), new Pair(KEYS[4]),
+			new Pair(KEYS[5]), new Pair(KEYS[6]), new Pair(KEYS[7]),
+			new Pair(KEYS[8]), new Pair(KEYS[9]) };;
 
 	private void execute() throws InterruptedException {
 
 		final Thread[] threads = new Thread[NUM_CONSUMERS + NUM_PRODUCERS];
 		// starting producer threads
 		long start = System.nanoTime();
+
+		final int len = KEYS.length / NUM_PRODUCERS;
 		for (int i = 0; i < NUM_PRODUCERS; i++) {
 			final int localCount = i;
 			threads[i] = new Thread() {
 
 				Random r = new Random();
-
-				int len = KEYS.length / NUM_PRODUCERS;
-				int start = (this.len * localCount);
+				int start = (len * localCount);
 
 				@Override
 				public void run() {
-					for (int j = 0; j < this.len; j++) {
+					for (int j = 0; j < len; j++) {
 						for (int k = 0; k < NUM_WRITES; k++) {
-							Mapping.this.pairs[k + this.start].setData(this.r
+							Mapping.this.pairs[len + this.start].setData(this.r
 									.nextLong());
 						}
 					}
@@ -93,10 +84,14 @@ public class Mapping {
 		}
 		long end = System.nanoTime();
 		System.out.println(end - start);
+
+		for (Pair pair : this.pairs) {
+			System.out.println(pair);
+		}
 	}
 
 	public class Pair {
-		private long data;
+		private volatile long data;
 		private final String key;
 
 		public Pair(String key) {
