@@ -1,14 +1,13 @@
-package ch.unibnf.ssc.vol;
-
 import java.util.Random;
 
 public class Mapping {
 
 	/**
 	 * @param args
-	 *            args[0] = KeySet to Use, args[1] = Number of producer threads,
-	 *            args[2] = number of consumer threads, args[3] = number of
-	 *            write cycles for each writer thread, args[4] = number of read
+	 *            args[0] number of keys, args[1] = key length, args[2] key
+	 *            distribution strategy, args[3] = Number of producer threads,
+	 *            args[4] = number of consumer threads, args[5] = number of
+	 *            write cycles for each writer thread, args[6] = number of read
 	 *            cycles
 	 * 
 	 * @throws InterruptedException
@@ -16,64 +15,64 @@ public class Mapping {
 	public static void main(String[] args) throws InterruptedException {
 
 		final Mapping mapping = new Mapping(args);
-		System.out.println("Running with parameters " + args[0] + " " + args[1]
-				+ " " + args[2] + " " + args[3] + " " + args[4]);
-		System.out.println(">>> Warm-up pass");
 		for (int i = 0; i < 10; i++) {
-			mapping.execute();
+			mapping.execute(false);
 		}
-		System.out.println("<<< Warm-up done\n\n");
 
-		System.out.println(">>> Run benchmark");
 		for (int i = 0; i < 100; i++) {
-			mapping.execute();
+			mapping.execute(true);
 		}
-		System.out.println("<<< Run benchmark");
 	}
 
 	public final String[] KEYS;
 	public final int NUM_PRODUCERS;
 	public final int NUM_CONSUMERS;
 	public final int NUM_WRITES;
+	public final KeyDistributionStrategy KEY_STRATEGY;
 
 	public final int NUM_READS;
 
 	private final Pair[] pairs;
 
 	public Mapping(String[] args) {
-		int keys = Integer.parseInt(args[0]);
-		if (keys > 1 || keys < 0) {
+		int strat = Integer.parseInt(args[0]);
+		if (strat < 0 || strat > 1) {
+			this.printUsage();
 			throw new IllegalArgumentException(
-					"Keys supports values 0 and 1 only");
+					"Only 0 and 1 are allowed values for key strategy");
 		}
+		this.KEY_STRATEGY = strat == 0 ? new ContinuousStrategy()
+				: new DistributedStrategy();
 
-		// this.KEYS = keys == 0 ? Config.KEYS_1 : Config.KEYS_64;
-		this.KEYS = KeySet.KEYS_1;
-
-		this.NUM_PRODUCERS = Integer.parseInt(args[1]);
-		this.NUM_CONSUMERS = Integer.parseInt(args[2]);
-		this.NUM_WRITES = Integer.parseInt(args[3]);
-		this.NUM_READS = Integer.parseInt(args[4]);
+		int numKeys = Integer.parseInt(args[1]);
+		int keyLength = Integer.parseInt(args[2]);
+		this.KEYS = KeySet.generateKeySet(keyLength, numKeys);
+		this.NUM_PRODUCERS = Integer.parseInt(args[3]);
+		this.NUM_CONSUMERS = Integer.parseInt(args[4]);
+		this.NUM_WRITES = Integer.parseInt(args[5]);
+		this.NUM_READS = Integer.parseInt(args[6]);
 
 		this.pairs = new Pair[this.KEYS.length];
 
 		for (int i = 0; i < this.KEYS.length; i++) {
 			this.pairs[i] = new Pair(this.KEYS[i]);
 		}
-	};
+	}
 
-	private void execute() throws InterruptedException {
+	private void execute(boolean output) throws InterruptedException {
 
 		final Thread[] threads = new Thread[this.NUM_CONSUMERS
 				+ this.NUM_PRODUCERS];
-		final int len = this.KEYS.length / this.NUM_PRODUCERS;
 
 		// starting producer threads
 		for (int i = 0; i < this.NUM_PRODUCERS; i++) {
 			final int localCount = i;
 			threads[i] = new Thread() {
 
-				int[] writePositions = this.getWritePositions();
+				int[] writePositions = Mapping.this.KEY_STRATEGY
+						.getWritePositions(localCount,
+								Mapping.this.KEYS.length,
+								Mapping.this.NUM_PRODUCERS);
 
 				Random r = new Random();
 
@@ -86,25 +85,6 @@ public class Mapping {
 						}
 					}
 				}
-
-				/*
-				 * Distribute keys evenly to Threads (e.g. 10 Keys, 4 Threads:
-				 * {0,4,8},{1,5,9},{2,6},{3,7})
-				 */
-				private int[] getWritePositions() {
-					int additional = localCount < (Mapping.this.KEYS.length % Mapping.this.NUM_PRODUCERS) ? 1
-							: 0;
-					int[] writePositions = new int[len + additional];
-					int count = 0;
-					for (int i = 0; i < Mapping.this.KEYS.length; i++) {
-						if (localCount == i % Mapping.this.NUM_PRODUCERS) {
-							writePositions[count] = i;
-							count++;
-						}
-					}
-					return writePositions;
-				}
-
 			};
 		}
 
@@ -134,7 +114,14 @@ public class Mapping {
 			thread.join();
 		}
 		long end = System.nanoTime();
-		System.out.println(end - start);
+		if (output) {
+			System.out.println(end - start);
+		}
+	}
+
+	private void printUsage() {
+		// TODO Auto-generated method stub
+
 	}
 
 	public class Pair {

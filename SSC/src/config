@@ -1,0 +1,32 @@
+#############################################################################
+# TODO Explain funt															#
+#																			#
+# Parameters:																#
+#																			#
+#																			#
+#	1. Key allocation strategy:												#
+#		0 -> continuous allocation											#
+#		1 -> evenly distributed allocation									#
+#																			#
+#	2. Number of keys to use												#
+#																			#
+#	3. Key length in bytes													#
+#																			#
+#	4. Number of producer threads (MAX = number of keys)					#
+#																			#
+#	5. Number of write cycles - i.e. number of times each cosumer writes	#
+#	   new data for each of its keys										#
+#																			#
+#	6. Number of consumer cycles											#
+#																			#
+#	7. Number of read cycles - i.e. number of times a cosumer reads the 	#
+#	   data for a random key												#
+#	 																		#
+# Example line: TODO specify												#
+# 0 10 1 2-10 4 10 4 														#
+#																			#
+#############################################################################
+0 10 1 1-10 4 10 4 
+0 10 64 1-10 4 10 4
+1 10 1 1-10 4 10 4
+1 10 64 1-10 4 10 4
