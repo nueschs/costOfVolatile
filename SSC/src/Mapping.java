@@ -8,29 +8,30 @@ public class Mapping {
 	 *            distribution strategy, args[3] = Number of producer threads,
 	 *            args[4] = number of consumer threads, args[5] = number of
 	 *            write cycles for each writer thread, args[6] = number of read
-	 *            cycles
+	 *            cycles, args[7] number of benchmark cycles
 	 * 
 	 * @throws InterruptedException
 	 */
 	public static void main(String[] args) throws InterruptedException {
+
+		final int NUM_CYCLES = Integer.parseInt(args[7]);
 
 		final Mapping mapping = new Mapping(args);
 		for (int i = 0; i < 10; i++) {
 			mapping.execute(false);
 		}
 
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < NUM_CYCLES; i++) {
 			mapping.execute(true);
 		}
 	}
 
-	public final String[] KEYS;
-	public final int NUM_PRODUCERS;
-	public final int NUM_CONSUMERS;
-	public final int NUM_WRITES;
-	public final KeyDistributionStrategy KEY_STRATEGY;
-
-	public final int NUM_READS;
+	private final String[] KEYS;
+	private final int NUM_PRODUCERS;
+	private final int NUM_CONSUMERS;
+	private final int NUM_WRITES;
+	private final KeyDistributionStrategy KEY_STRATEGY;
+	private final int NUM_READS;
 
 	private final Pair[] pairs;
 

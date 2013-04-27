@@ -5,8 +5,9 @@ import time
 import subprocess
 import Gnuplot, Gnuplot.funcutils
 
-config = "config"
-paramErr = ">> Each set must contain exactly one variable parameter (see usage for help)"
+config = 'config'
+resultDir = 'results/'
+paramErr = '>> Each set must contain exactly one variable parameter (see usage for help)'
 
 yAxisLabel = 'time in ms'
 xAxisLabel = ['Keys Distribution Strategy', 'Number of Keys', 'Key length in bytes',
@@ -59,22 +60,24 @@ def writeDataFile(fileName, valueMap):
     f.close()
 
 def createPlot(valueMap, set):
+    if (not os.path.exists(resultDir)):
+        os.mkdir(resultDir)
     dataFile = set.replace(' ','_')+".txt"
-    if (os.path.exists(dataFile)):
-        os.remove(dataFile)
-    writeDataFile(dataFile, valueMap)
+    if (os.path.exists(resultDir+dataFile)):
+        os.remove(resultDir+dataFile)
+    writeDataFile(resultDir+dataFile, valueMap)
     plot = Gnuplot.Gnuplot()
     plot.title(set)
     plot('set term pdf font "Helvetica, 10"')
     plot('set style line 1 lt 1 lc rgb "#FF0000" lw 7 # red')
-    plot('set output "'+set.replace(' ','_')+'.pdf";')
+    plot('set output "'+resultDir+set.replace(' ','_')+'.pdf";')
     plot('set ylabel "'+yAxisLabel+'";')
     plot('set xlabel "'+xAxisLabel[varPosition]+'";')
     plot('set grid x,y;')
     plot('set key top left;')
     plot('set yrange [:]')
     plot('set xrange [:]')
-    plot('plot "'+dataFile+'" u ($1):($2*0.000001) smooth unique title "'+xAxisLabel[varPosition]+'";')
+    plot('plot "'+resultDir+dataFile+'" u ($1):($2*0.000001) smooth unique title "'+xAxisLabel[varPosition]+'";')
     
     
     
@@ -82,8 +85,8 @@ sets = readSets()
 for set in sets:
     avgs = dict()
     for paramLine in getParamLines(set):
-        print "Running with parameters " + paramLine
-        sp = subprocess.Popen("java Mapping " + paramLine, shell=True, stdout=subprocess.PIPE)
+        print 'Running with parameters ' + paramLine
+        sp = subprocess.Popen('java Mapping ' + paramLine, shell=True, stdout=subprocess.PIPE)
         avg = getAverage(sp.communicate()[0])
         avgs[paramLine.split()[varPosition]] = avg
     createPlot(avgs, set)
