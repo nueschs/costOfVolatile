@@ -1,5 +1,8 @@
 #############################################################################
-# TODO Explain funt															#
+# This config file is used to specify any number of sets the Mapping		#
+# benchmark is run for. Each line represents a set of given values			#
+# with one value specified as range. For each value in this range, the 		#
+# benchmark is run. Finally, a plot is created for all sets.				#
 #																			#
 # Parameters:																#
 #																			#
@@ -24,7 +27,9 @@
 #	 																		#
 #	8. Number of benchmark cycles 											#
 #	 																		#
-# Example line: TODO specify												#
+# Example (continuous allocation, with 10 keys of 1 byte length, from 1 to	#
+# 10 producer threads, 4 producer cycles, 10 consumer threads, 4 consumer   #
+# cycles, and 100 run cycles):												#
 # 0 10 1 2-10 4 10 4 100													#
 #																			#
 #############################################################################

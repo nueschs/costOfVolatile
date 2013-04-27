@@ -38,7 +38,6 @@ public class Mapping {
 	public Mapping(String[] args) {
 		int strat = Integer.parseInt(args[0]);
 		if (strat < 0 || strat > 1) {
-			this.printUsage();
 			throw new IllegalArgumentException(
 					"Only 0 and 1 are allowed values for key strategy");
 		}
@@ -118,11 +117,6 @@ public class Mapping {
 		if (output) {
 			System.out.println(end - start);
 		}
-	}
-
-	private void printUsage() {
-		// TODO Auto-generated method stub
-
 	}
 
 	public class Pair {
