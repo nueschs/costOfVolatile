@@ -1,6 +1,6 @@
 package ch.unibnf.ssc.vol;
 
-public class Config {
+public class KeySet {
 
 	public static final String[] KEYS_64 = {
 			"SBkyv9CbGzy1NsSLmNOVN1BCdETQOSVAA46H03pgd3GNtKaHRJlT7r5ogUPgLg7h",
