@@ -14,6 +14,8 @@ xAxisLabel = ['Keys Distribution Strategy', 'Number of Keys', 'Key length in byt
               'Number of Producers', 'Number of Write Cycles', 'Number of Consumers',
               'Number of Read Cycles']
 
+numSteps = 10
+
 def readSets():
     sets = []
     with open(config, 'r') as f:
@@ -38,10 +40,19 @@ def getParamLines(set):
             varPosition = count
         count = count + 1
     varRange = args[varPosition].split('-')
-    for x in range(int(varRange[0]), int(varRange[1]) + 1):
-        tempLine = args[:]
-        tempLine[varPosition] = str(x)
-        lines.append(' '.join(tempLine))
+    if (isinstance(varRange[0], float)):
+        step = (varRange[1] - varRange[0])/numSteps
+        x = varRange[0]
+        while (x <= varRange[1]):
+            tempLine = args[:]
+            tempLine[varPosition] = str(x)
+            print(lines.append(' '.join(tempLine)))
+            #lines.append(' '.join(tempLine))
+    else:
+        for x in range(int(varRange[0]), int(varRange[1]) + 1):
+            tempLine = args[:]
+            tempLine[varPosition] = str(x)
+            lines.append(' '.join(tempLine))
     return lines
 
 def getAverage(output):
