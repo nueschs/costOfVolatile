@@ -14,7 +14,7 @@ public class Mapping {
 	 */
 	public static void main(String[] args) throws InterruptedException {
 
-		final int NUM_CYCLES = Integer.parseInt(args[7]);
+		final int NUM_CYCLES = Integer.parseInt(args[8]);
 
 		final Mapping mapping = new Mapping(args);
 		for (int i = 0; i < 10; i++) {
@@ -37,20 +37,29 @@ public class Mapping {
 
 	public Mapping(String[] args) {
 		int strat = Integer.parseInt(args[0]);
-		if (strat < 0 || strat > 1) {
+		switch (strat) {
+		case 0:
+			this.KEY_STRATEGY = new ContinuousStrategy();
+			break;
+		case 1:
+			this.KEY_STRATEGY = new DistributedStrategy();
+			break;
+		case 2:
+			float perc = Float.parseFloat(args[1]);
+			this.KEY_STRATEGY = new VariableContentionStrategy(perc);
+			break;
+		default:
 			throw new IllegalArgumentException(
 					"Only 0 and 1 are allowed values for key strategy");
 		}
-		this.KEY_STRATEGY = strat == 0 ? new ContinuousStrategy()
-				: new DistributedStrategy();
 
-		int numKeys = Integer.parseInt(args[1]);
-		int keyLength = Integer.parseInt(args[2]);
+		int numKeys = Integer.parseInt(args[2]);
+		int keyLength = Integer.parseInt(args[3]);
 		this.KEYS = KeySet.generateKeySet(keyLength, numKeys);
-		this.NUM_PRODUCERS = Integer.parseInt(args[3]);
-		this.NUM_CONSUMERS = Integer.parseInt(args[4]);
-		this.NUM_WRITES = Integer.parseInt(args[5]);
-		this.NUM_READS = Integer.parseInt(args[6]);
+		this.NUM_PRODUCERS = Integer.parseInt(args[4]);
+		this.NUM_CONSUMERS = Integer.parseInt(args[5]);
+		this.NUM_WRITES = Integer.parseInt(args[6]);
+		this.NUM_READS = Integer.parseInt(args[7]);
 
 		this.pairs = new Pair[this.KEYS.length];
 

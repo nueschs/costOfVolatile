@@ -4,6 +4,7 @@ import os
 import time
 import subprocess
 import Gnuplot, Gnuplot.funcutils
+import re
 
 config = 'config'
 resultDir = 'results/'
@@ -13,6 +14,8 @@ yAxisLabel = 'time in ms'
 xAxisLabel = ['Keys Distribution Strategy', 'Number of Keys', 'Key length in bytes',
               'Number of Producers', 'Number of Write Cycles', 'Number of Consumers',
               'Number of Read Cycles']
+
+numSteps = 10
 
 def readSets():
     sets = []
@@ -38,10 +41,23 @@ def getParamLines(set):
             varPosition = count
         count = count + 1
     varRange = args[varPosition].split('-')
-    for x in range(int(varRange[0]), int(varRange[1]) + 1):
-        tempLine = args[:]
-        tempLine[varPosition] = str(x)
-        lines.append(' '.join(tempLine))
+    isFloat = (re.match("^\d+?\.\d+?$", varRange[0]) is not None) 
+    if  isFloat:
+        lower= float(varRange[0])
+        upper = float(varRange[1])
+        step = (upper - lower)/numSteps
+        x = lower
+        while (x < upper+step):
+            tempLine = args[:]
+            tempLine[varPosition] = str(x)
+            print(' '.join(tempLine))
+            x += step
+            #lines.append(' '.join(tempLine))
+    else:
+        for x in range(int(varRange[0]), int(varRange[1]) + 1):
+            tempLine = args[:]
+            tempLine[varPosition] = str(x)
+            lines.append(' '.join(tempLine))
     return lines
 
 def getAverage(output):

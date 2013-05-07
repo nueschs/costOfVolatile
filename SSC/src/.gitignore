@@ -1,3 +1,6 @@
 /plot.gp
 *.class
 /results
+/test.pdf
+/test.py
+/config~
