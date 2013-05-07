@@ -73,7 +73,7 @@ def createPlot(valueMap, set):
     plot('set output "'+resultDir+set.replace(' ','_')+'.pdf";')
     plot('set ylabel "'+yAxisLabel+'";')
     plot('set xlabel "'+xAxisLabel[varPosition]+'";')
-    plot('set grid x,y;')
+    #plot('set grid x,y;')
     plot('set key top left;')
     plot('set yrange [:]')
     plot('set xrange [:]')
