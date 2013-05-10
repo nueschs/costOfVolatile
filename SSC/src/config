@@ -9,11 +9,10 @@
 #																			#
 #	1. Key allocation strategy:												#
 #		0 -> continuous allocation											#
-#		1 -> evenly distributed allocation									#
-#		2 -> variable contention											#
+#		1 -> evenly distributed allocation (currently not working)			#
 #																			#
 #	2. Variable contention percentage (i.e percentage of threads each key	#
-#	   is read from / written to by - ignored if allocation strategy != 2)	#
+#	   is read from / written to by )										#
 #																			#
 #	3. Number of keys to use												#
 #																			#

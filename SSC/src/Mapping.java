@@ -32,27 +32,21 @@ public class Mapping {
 	private final int NUM_WRITES;
 	private final KeyDistributionStrategy KEY_STRATEGY;
 	private final int NUM_READS;
+	private final int CONTENTION_PRECENTAGE;
 
 	private final Pair[] pairs;
 
 	public Mapping(String[] args) {
 		int strat = Integer.parseInt(args[0]);
-		switch (strat) {
-		case 0:
-			this.KEY_STRATEGY = new ContinuousStrategy();
-			break;
-		case 1:
-			this.KEY_STRATEGY = new DistributedStrategy();
-			break;
-		case 2:
-			float perc = Float.parseFloat(args[1]);
-			this.KEY_STRATEGY = new VariableContentionStrategy(perc);
-			break;
-		default:
+		if (strat < 0 || strat > 1) {
 			throw new IllegalArgumentException(
 					"Only 0 and 1 are allowed values for key strategy");
 		}
 
+		this.KEY_STRATEGY = strat == 0 ? new ContinuousStrategy()
+				: new DistributedStrategy();
+
+		this.CONTENTION_PRECENTAGE = Integer.parseInt(args[1]);
 		int numKeys = Integer.parseInt(args[2]);
 		int keyLength = Integer.parseInt(args[3]);
 		this.KEYS = KeySet.generateKeySet(keyLength, numKeys);
@@ -81,7 +75,8 @@ public class Mapping {
 				int[] writePositions = Mapping.this.KEY_STRATEGY
 						.getWritePositions(localCount,
 								Mapping.this.KEYS.length,
-								Mapping.this.NUM_PRODUCERS);
+								Mapping.this.NUM_PRODUCERS,
+								Mapping.this.CONTENTION_PRECENTAGE);
 
 				Random r = new Random();
 
