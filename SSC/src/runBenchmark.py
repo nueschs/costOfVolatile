@@ -5,13 +5,14 @@ import time
 import subprocess
 import Gnuplot, Gnuplot.funcutils
 import re
+import collections
 
 config = 'config'
 resultDir = 'results/'
 paramErr = '>> Each set must contain exactly one variable parameter (see usage for help)'
 
 yAxisLabel = 'time in ms'
-xAxisLabel = ['Keys Distribution Strategy', 'Number of Keys', 'Key length in bytes',
+xAxisLabel = ['Keys Distribution Strategy', 'Contention Percentage','Number of Keys', 'Key length in bytes',
               'Number of Producers', 'Number of Write Cycles', 'Number of Consumers',
               'Number of Read Cycles']
 
@@ -52,7 +53,7 @@ def getParamLines(set):
             tempLine[varPosition] = str(x)
             print(' '.join(tempLine))
             x += step
-            #lines.append(' '.join(tempLine))
+            lines.append(' '.join(tempLine))
     else:
         for x in range(int(varRange[0]), int(varRange[1]) + 1):
             tempLine = args[:]
@@ -71,7 +72,8 @@ def getAverage(output):
 
 def writeDataFile(fileName, valueMap):
     f = open(fileName, 'a')
-    for k,v in valueMap.iteritems():
+    orderedValueMap = collections.OrderedDict(sorted(valueMap.items()))
+    for k,v in orderedValueMap.iteritems():
         f.write(str(k)+" "+str(v)+"\n")
     f.close()
 
@@ -85,7 +87,7 @@ def createPlot(valueMap, set):
     plot = Gnuplot.Gnuplot()
     plot.title(set)
     plot('set term pdf font "Helvetica, 10"')
-    plot('set style line 1 lt 1 lc rgb "#FF0000" lw 7 # red')
+    plot('set style line 1 lt 1 lc rgb "#FF0000" lw 3 # red')
     plot('set output "'+resultDir+set.replace(' ','_')+'.pdf";')
     plot('set ylabel "'+yAxisLabel+'";')
     plot('set xlabel "'+xAxisLabel[varPosition]+'";')
@@ -93,17 +95,23 @@ def createPlot(valueMap, set):
     plot('set key top left;')
     plot('set yrange [:]')
     plot('set xrange [:]')
-    plot('plot "'+resultDir+dataFile+'" u ($1):($2*0.000001) smooth unique title "'+xAxisLabel[varPosition]+'";')
+    plot('plot "'+resultDir+dataFile+'" u ($1):($2*0.000001) with lines linestyle 1 title "'+xAxisLabel[varPosition]+'";')
     
     
     
 sets = readSets()
 for set in sets:
     avgs = dict()
+    count = 0
     for paramLine in getParamLines(set):
         print 'Running with parameters ' + paramLine
-        sp = subprocess.Popen('java Mapping ' + paramLine, shell=True, stdout=subprocess.PIPE)
-        avg = getAverage(sp.communicate()[0])
+        sp = subprocess.Popen('java -server Mapping ' + paramLine, shell=True, stdout=subprocess.PIPE)
+        output = sp.communicate()[0]
+        avg = getAverage(output)
+        f = open(resultDir+"data/temp"+str(count), 'a')
+        f.write(output)
+        f.close()
+        count = count + 1
         avgs[paramLine.split()[varPosition]] = avg
     createPlot(avgs, set)
         # os.system("java Mapping "+paramLine+" >> "+paramLine.replace(' ','_')+".txt")

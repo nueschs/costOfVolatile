@@ -32,23 +32,24 @@ public class Mapping {
 	private final int NUM_WRITES;
 	private final KeyDistributionStrategy KEY_STRATEGY;
 	private final int NUM_READS;
-	private final int CONTENTION_PRECENTAGE;
+	private final float CONTENTION_PRECENTAGE;
 
 	private final Pair[] pairs;
 
 	public Mapping(String[] args) {
 		int strat = Integer.parseInt(args[0]);
 		if (strat < 0 || strat > 1) {
-			throw new IllegalArgumentException(
-					"Only 0 and 1 are allowed values for key strategy");
+			throw new IllegalArgumentException("Only 0 and 1 are allowed values for key strategy");
 		}
 
-		this.KEY_STRATEGY = strat == 0 ? new ContinuousStrategy()
-				: new DistributedStrategy();
+		this.KEY_STRATEGY = strat == 0 ? new ContinuousStrategy() : new DistributedStrategy();
 
-		this.CONTENTION_PRECENTAGE = Integer.parseInt(args[1]);
+		this.CONTENTION_PRECENTAGE = Float.parseFloat(args[1]);
 		int numKeys = Integer.parseInt(args[2]);
 		int keyLength = Integer.parseInt(args[3]);
+		if ((16 ^ keyLength) < numKeys) {
+			throw new IllegalArgumentException("Keys consist of hex digits, so the total number of keys must be larger than 16^key length");
+		}
 		this.KEYS = KeySet.generateKeySet(keyLength, numKeys);
 		this.NUM_PRODUCERS = Integer.parseInt(args[4]);
 		this.NUM_CONSUMERS = Integer.parseInt(args[5]);
@@ -64,19 +65,15 @@ public class Mapping {
 
 	private void execute(boolean output) throws InterruptedException {
 
-		final Thread[] threads = new Thread[this.NUM_CONSUMERS
-				+ this.NUM_PRODUCERS];
+		final Thread[] threads = new Thread[this.NUM_CONSUMERS + this.NUM_PRODUCERS];
 
 		// starting producer threads
 		for (int i = 0; i < this.NUM_PRODUCERS; i++) {
 			final int localCount = i;
 			threads[i] = new Thread() {
 
-				int[] writePositions = Mapping.this.KEY_STRATEGY
-						.getWritePositions(localCount,
-								Mapping.this.KEYS.length,
-								Mapping.this.NUM_PRODUCERS,
-								Mapping.this.CONTENTION_PRECENTAGE);
+				int[] writePositions = Mapping.this.KEY_STRATEGY.getWritePositions(localCount, Mapping.this.KEYS.length, Mapping.this.NUM_PRODUCERS,
+						Mapping.this.CONTENTION_PRECENTAGE);
 
 				Random r = new Random();
 
@@ -84,8 +81,7 @@ public class Mapping {
 				public void run() {
 					for (int k = 0; k < Mapping.this.NUM_WRITES; k++) {
 						for (int j = 0; j < this.writePositions.length; j++) {
-							Mapping.this.pairs[this.writePositions[j]]
-									.setData(this.r.nextLong());
+							Mapping.this.pairs[this.writePositions[j]].setData(this.r.nextLong());
 						}
 					}
 				}
@@ -99,8 +95,7 @@ public class Mapping {
 				@Override
 				public void run() {
 					for (int j = 0; j < Mapping.this.NUM_READS; j++) {
-						long temp = Mapping.this.pairs[r
-								.nextInt(Mapping.this.KEYS.length)].getData();
+						long temp = Mapping.this.pairs[r.nextInt(Mapping.this.KEYS.length)].getData();
 					}
 				}
 
