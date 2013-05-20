@@ -14,7 +14,7 @@ public class Mapping {
 	 */
 	public static void main(String[] args) throws InterruptedException {
 
-		final int NUM_CYCLES = Integer.parseInt(args[8]);
+		final int NUM_CYCLES = Integer.parseInt(args[10]);
 
 		final Mapping mapping = new Mapping(args);
 		for (int i = 0; i < 10; i++) {
@@ -27,34 +27,44 @@ public class Mapping {
 	}
 
 	private final String[] KEYS;
-	private final int NUM_PRODUCERS;
-	private final int NUM_CONSUMERS;
+
+	private final int NUM_WRITERS;
 	private final int NUM_WRITES;
-	private final KeyDistributionStrategy KEY_STRATEGY;
+	private final KeyDistributionStrategy WRITER_KEY_STRATEGY;
+	private final float WRITER_CONTENTION_PRECENTAGE;
+
+	private final int NUM_READERS;
 	private final int NUM_READS;
-	private final float CONTENTION_PRECENTAGE;
+	private final KeyDistributionStrategy READER_KEY_STRATEGY;
+	private final float READER_CONTENTION_PRECENTAGE;
 
 	private final Pair[] pairs;
 
 	public Mapping(String[] args) {
-		int strat = Integer.parseInt(args[0]);
-		if (strat < 0 || strat > 1) {
-			throw new IllegalArgumentException("Only 0 and 1 are allowed values for key strategy");
-		}
-
-		this.KEY_STRATEGY = strat == 0 ? new ContinuousStrategy() : new DistributedStrategy();
-
-		this.CONTENTION_PRECENTAGE = Float.parseFloat(args[1]);
-		int numKeys = Integer.parseInt(args[2]);
-		int keyLength = Integer.parseInt(args[3]);
-		if ((16 ^ keyLength) < numKeys) {
+		int numKeys = Integer.parseInt(args[0]);
+		int keyLength = Integer.parseInt(args[1]);
+		if ((Math.pow(16, keyLength)) < numKeys) {
 			throw new IllegalArgumentException("Keys consist of hex digits, so the total number of keys must be larger than 16^key length");
 		}
 		this.KEYS = KeySet.generateKeySet(keyLength, numKeys);
-		this.NUM_PRODUCERS = Integer.parseInt(args[4]);
-		this.NUM_CONSUMERS = Integer.parseInt(args[5]);
-		this.NUM_WRITES = Integer.parseInt(args[6]);
+
+		this.NUM_WRITERS = Integer.parseInt(args[2]);
+		this.NUM_WRITES = Integer.parseInt(args[3]);
+		int writeStrat = Integer.parseInt(args[4]);
+		if (writeStrat < 0 || writeStrat > 1) {
+			throw new IllegalArgumentException("Only 0 and 1 are allowed values for key strategy");
+		}
+		this.WRITER_KEY_STRATEGY = writeStrat == 0 ? new ContinuousStrategy() : new DistributedStrategy();
+		this.WRITER_CONTENTION_PRECENTAGE = Float.parseFloat(args[5]);
+
+		this.NUM_READERS = Integer.parseInt(args[6]);
 		this.NUM_READS = Integer.parseInt(args[7]);
+		int readStrat = Integer.parseInt(args[8]);
+		if (readStrat < 0 || readStrat > 1) {
+			throw new IllegalArgumentException("Only 0 and 1 are allowed values for key strategy");
+		}
+		this.READER_KEY_STRATEGY = readStrat == 0 ? new ContinuousStrategy() : new DistributedStrategy();
+		this.READER_CONTENTION_PRECENTAGE = Float.parseFloat(args[9]);
 
 		this.pairs = new Pair[this.KEYS.length];
 
@@ -65,15 +75,15 @@ public class Mapping {
 
 	private void execute(boolean output) throws InterruptedException {
 
-		final Thread[] threads = new Thread[this.NUM_CONSUMERS + this.NUM_PRODUCERS];
+		final Thread[] threads = new Thread[this.NUM_READERS + this.NUM_WRITERS];
 
 		// starting producer threads
-		for (int i = 0; i < this.NUM_PRODUCERS; i++) {
+		for (int i = 0; i < this.NUM_WRITERS; i++) {
 			final int localCount = i;
 			threads[i] = new Thread() {
 
-				int[] writePositions = Mapping.this.KEY_STRATEGY.getWritePositions(localCount, Mapping.this.KEYS.length, Mapping.this.NUM_PRODUCERS,
-						Mapping.this.CONTENTION_PRECENTAGE);
+				int[] writePositions = Mapping.this.WRITER_KEY_STRATEGY.getWritePositions(localCount, Mapping.this.KEYS.length, Mapping.this.NUM_WRITERS,
+						Mapping.this.WRITER_CONTENTION_PRECENTAGE);
 
 				Random r = new Random();
 
@@ -89,13 +99,20 @@ public class Mapping {
 		}
 
 		// starting consumer threads
-		for (int i = 0; i < this.NUM_CONSUMERS; i++) {
+		for (int i = 0; i < this.NUM_READERS; i++) {
 			final Random r = new Random();
-			threads[i + this.NUM_PRODUCERS] = new Thread() {
+			final int localCount = i;
+			threads[i + this.NUM_WRITERS] = new Thread() {
+
+				int[] readPositions = Mapping.this.READER_KEY_STRATEGY.getWritePositions(localCount, Mapping.this.KEYS.length, Mapping.this.NUM_READERS,
+						Mapping.this.READER_CONTENTION_PRECENTAGE);
+
 				@Override
 				public void run() {
 					for (int j = 0; j < Mapping.this.NUM_READS; j++) {
-						long temp = Mapping.this.pairs[r.nextInt(Mapping.this.KEYS.length)].getData();
+						for (int k = 0; k < this.readPositions.length; k++) {
+							long temp = Mapping.this.pairs[this.readPositions[k]].getData();
+						}
 					}
 				}
 

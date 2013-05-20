@@ -9,12 +9,14 @@ import collections
 
 config = 'config'
 resultDir = 'results/'
+completeDataFileBase = resultDir+'data/confData'
 paramErr = '>> Each set must contain exactly one variable parameter (see usage for help)'
 
 yAxisLabel = 'time in ms'
-xAxisLabel = ['Keys Distribution Strategy', 'Contention Percentage','Number of Keys', 'Key length in bytes',
-              'Number of Producers', 'Number of Write Cycles', 'Number of Consumers',
-              'Number of Read Cycles']
+xAxisLabel = ['Number of Keys','Key length in bytes','Number of Writers',
+              'Number of Write Cycles', 'Keys Distribution Strategy (Writers)', 'Contention Percentage (Writers)',
+              'Number of Readers', 'Number of Read Cycles', 'Keys Distribution Strategy (Readers)',
+              'Contention Percentage (Readers)', 'Number of cycles']
 
 numSteps = 10
 
@@ -48,7 +50,7 @@ def getParamLines(set):
         upper = float(varRange[1])
         step = (upper - lower)/numSteps
         x = lower
-        while (x < upper+step):
+        while (x <= upper):
             tempLine = args[:]
             tempLine[varPosition] = str(x)
             print(' '.join(tempLine))
@@ -70,11 +72,32 @@ def getAverage(output):
             count += 1
     return sum / count
 
+def getMin(output):
+    min = long(sys.maxint)
+    for line in output.split('\n'):
+        if (len(line) > 0):
+            val = long(line)
+            if (val < min):
+                min = val
+    return min
+
+def getMax(output):
+    max = long(-1)
+    for line in output.split('\n'):
+        if (len(line) > 0):
+            val = long(line)
+            if (val > max):
+                max = val
+    return max
+
 def writeDataFile(fileName, valueMap):
     f = open(fileName, 'a')
     orderedValueMap = collections.OrderedDict(sorted(valueMap.items()))
     for k,v in orderedValueMap.iteritems():
-        f.write(str(k)+" "+str(v)+"\n")
+        line = ""
+        for val in v:
+            line += str(val)+" "
+        f.write(str(k)+" "+line+"\n")
     f.close()
 
 def createPlot(valueMap, set):
@@ -95,7 +118,7 @@ def createPlot(valueMap, set):
     plot('set key top left;')
     plot('set yrange [:]')
     plot('set xrange [:]')
-    plot('plot "'+resultDir+dataFile+'" u ($1):($2*0.000001) with lines linestyle 1 title "'+xAxisLabel[varPosition]+'";')
+    plot('plot "'+resultDir+dataFile+'" using ($1):($2):($3):($4) with yerrorlines title "'+xAxisLabel[varPosition]+'";')
     
     
     
@@ -103,15 +126,19 @@ sets = readSets()
 for set in sets:
     avgs = dict()
     count = 0
+    if (os.path.exists(completeDataFileBase+set.replace(' ','_'))):
+            os.remove(completeDataFileBase+set.replace(' ','_'))
     for paramLine in getParamLines(set):
         print 'Running with parameters ' + paramLine
         sp = subprocess.Popen('java -server Mapping ' + paramLine, shell=True, stdout=subprocess.PIPE)
         output = sp.communicate()[0]
         avg = getAverage(output)
+        min = getMin(output)
+        max = getMax(output)
         f = open(resultDir+"data/temp"+str(count), 'a')
         f.write(output)
         f.close()
         count = count + 1
-        avgs[paramLine.split()[varPosition]] = avg
+        avgs[paramLine.split()[varPosition]] = [avg,min,max]
     createPlot(avgs, set)
         # os.system("java Mapping "+paramLine+" >> "+paramLine.replace(' ','_')+".txt")
