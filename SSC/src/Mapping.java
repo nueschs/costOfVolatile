@@ -14,7 +14,7 @@ public class Mapping {
 	 */
 	public static void main(String[] args) throws InterruptedException {
 
-		final int NUM_CYCLES = Integer.parseInt(args[8]);
+		final int NUM_CYCLES = Integer.parseInt(args[6]);
 
 		final Mapping mapping = new Mapping(args);
 		for (int i = 0; i < 10; i++) {
@@ -28,17 +28,16 @@ public class Mapping {
 
 	private final String[] KEYS;
 
-	private final int NUM_WRITERS;
-	private final int NUM_WRITES;
-	private final ContinuousStrategy WRITER_KEY_STRATEGY;
-	private final float WRITER_CONTENTION_PRECENTAGE;
-
-	private final int NUM_READERS;
-	private final int NUM_READS;
-	private final ContinuousStrategy READER_KEY_STRATEGY;
-	private final float READER_CONTENTION_PRECENTAGE;
-
 	private final Pair[] pairs;
+	private final int NUM_THREADS;
+
+	private final int NUM_CYCLES;
+
+	private final int RW_RATIO;
+
+	private final double OVERLAPPING;
+
+	private ContinuousStrategy distributionHelper;
 
 	public Mapping(String[] args) {
 		int numKeys = Integer.parseInt(args[0]);
@@ -47,16 +46,12 @@ public class Mapping {
 			throw new IllegalArgumentException("Keys consist of hex digits, so the total number of keys must be larger than 16^key length");
 		}
 		this.KEYS = KeySet.generateKeySet(keyLength, numKeys);
-
-		this.NUM_WRITERS = Integer.parseInt(args[2]);
-		this.NUM_WRITES = Integer.parseInt(args[3]);
-		this.WRITER_KEY_STRATEGY = new ContinuousStrategy();
-		this.WRITER_CONTENTION_PRECENTAGE = Float.parseFloat(args[4]);
-
-		this.NUM_READERS = Integer.parseInt(args[5]);
-		this.NUM_READS = Integer.parseInt(args[6]);
-		this.READER_KEY_STRATEGY = new ContinuousStrategy();
-		this.READER_CONTENTION_PRECENTAGE = Float.parseFloat(args[7]);
+		
+		this.NUM_THREADS = Integer.parseInt(args[2]);
+		this.NUM_CYCLES =  Integer.parseInt(args[3]); 
+		this.RW_RATIO = Integer.parseInt(args[4]);
+		this.OVERLAPPING = Double.parseDouble(args[5]);
+		this.distributionHelper = new ContinuousStrategy();
 
 		this.pairs = new Pair[this.KEYS.length];
 
@@ -67,47 +62,31 @@ public class Mapping {
 
 	private void execute(boolean output) throws InterruptedException {
 
-		final Thread[] threads = new Thread[this.NUM_READERS + this.NUM_WRITERS];
-
-		// starting producer threads
-		for (int i = 0; i < this.NUM_WRITERS; i++) {
+		final Thread[] threads = new Thread[this.NUM_THREADS];
+		
+		for (int i = 0; i < NUM_THREADS; i++){
 			final int localCount = i;
-			threads[i] = new Thread() {
-
-				int[] writePositions = Mapping.this.WRITER_KEY_STRATEGY.getKeyPositions(localCount, Mapping.this.KEYS.length, Mapping.this.NUM_WRITERS,
-						Mapping.this.WRITER_CONTENTION_PRECENTAGE);
-
+			threads[i] = new Thread(){
+				
+				int[] keyPositions = distributionHelper.getKeyPositions(localCount, KEYS.length, NUM_THREADS, OVERLAPPING);
 				Random r = new Random();
-
+				
 				@Override
 				public void run() {
-					for (int k = 0; k < Mapping.this.NUM_WRITES; k++) {
-						for (int j = 0; j < this.writePositions.length; j++) {
-							Mapping.this.pairs[this.writePositions[j]].setData(this.r.nextLong());
+					for(int j = 0; j < NUM_CYCLES; j++){
+						int count = localCount*RW_RATIO;
+						for (int k = 0; k < this.keyPositions.length; k++){
+							if (count >= 100){
+								pairs[keyPositions[k]].setData(this.r.nextLong());
+								count = 0;
+							} else {
+								long temp = Mapping.this.pairs[this.keyPositions[k]].getData();
+								count += RW_RATIO;
+							}
 						}
 					}
+					super.run();
 				}
-			};
-		}
-
-		// starting consumer threads
-		for (int i = 0; i < this.NUM_READERS; i++) {
-			final Random r = new Random();
-			final int localCount = i;
-			threads[i + this.NUM_WRITERS] = new Thread() {
-
-				int[] readPositions = Mapping.this.READER_KEY_STRATEGY.getKeyPositions(localCount, Mapping.this.KEYS.length, Mapping.this.NUM_READERS,
-						Mapping.this.READER_CONTENTION_PRECENTAGE);
-
-				@Override
-				public void run() {
-					for (int j = 0; j < Mapping.this.NUM_READS; j++) {
-						for (int k = 0; k < this.readPositions.length; k++) {
-							long temp = Mapping.this.pairs[this.readPositions[k]].getData();
-						}
-					}
-				}
-
 			};
 		}
 

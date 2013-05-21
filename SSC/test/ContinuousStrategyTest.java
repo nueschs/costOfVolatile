@@ -49,7 +49,7 @@ public class ContinuousStrategyTest {
 		int[] expected10_8_0_50 = { 0 };
 		Assert.assertArrayEquals(expected10_8_0_50, this.strategy.getKeyPositions(0, 10, 8, 0.5f));
 
-		int[] expected100_10_7_30 = { 49, 50, 51, 52, 53, 54, 55, 56, 57, 58 };
+		int[] expected100_10_7_30 = { 48, 49, 50, 51, 52, 53, 54, 55, 56, 57};
 		Assert.assertArrayEquals(expected100_10_7_30, this.strategy.getKeyPositions(7, 100, 10, 0.3f));
 
 		int[] expected10_8_7_50 = { 3 };

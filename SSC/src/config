@@ -7,27 +7,21 @@
 # Parameters:                                                               #
 #                                                                           #
 #                                                                           #
-#	1. Number of keys to use                                            #
+#       1. Number of keys to use                                            #
 #                                                                           #
-#	2. Key length                                                       #
+#       2. Key length                                                       #
 #                                                                           #
-#	3. Number of writer threads                                         #
+#       3. Number of threads                                                #
 #                                                                           #
-#	4. Number of write cycles - i.e. number of times each writer writes #
-#	   new data for each of its keys                                    #
+#       4. Number of access cycles - i.e. number of times each thread       #
+#          accesses each of its keys (reading or writing)                   #
 #                                                                           #
-#	5. Writer contention percentage (i.e percentage of threads each key #
-#	   is read from / written to by )                                   #
+#       5. Read / Write ratio (0 = read only, 100 = write only)             #
 #                                                                           #
-#	6. Number of reader threads                                         #
+#       6. Key set overlapping (0 = fully disjoint sets, 1 = the same set   #
+#          for all threads)                                                 #
 #                                                                           #
-#	7. Number of read cycles - i.e. number of times a cosumer reads the #
-#	   data for a random key                                            #
-#                                                                           #
-#	8. Reader contention percentage (i.e percentage of threads each key #
-#	   is read from / written to by )                                   #
-#                                                                           #
-#	9. Number of benchmark cycles                                       #
+#       7. Number of benchmark cycles                                       #
 #                                                                           #
 # Example (10 1 byte keys, 16 writers, 10 cycles, continuous keys, with     #
 # write contention between 0.1 and 0.9, 16 readers, 32 cycles, continuous   # 
@@ -40,6 +34,8 @@
 #100 3 16 50000 0.0-1.0 16 50000 0.0 10
 #100 3 16 50000 0.0-1.0 16 50000 0.0 10
 # no reads
-100 3 16 500000 0.0-1.0 0 500000 0.0 10
+#100 3 16 500000 0.0-1.0 0 500000 0.0 10
 # no writes
-100 3 0 500000 0.0-1.0 16 500000 0.0 10
+#100 3 0 500000 0.0-1.0 16 500000 0.0 10
+100 3 16 500000 0-100 0.0 10
+100 3 16 500000 0-100 1.0 10

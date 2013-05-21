@@ -13,10 +13,9 @@ completeDataFileBase = resultDir+'data/confData'
 paramErr = '>> Each set must contain exactly one variable parameter (see usage for help)'
 
 yAxisLabel = 'time in ms'
-xAxisLabel = ['Number of Keys','Key length in bytes','Number of Writers',
-              'Number of Write Cycles', 'Keys Distribution Strategy (Writers)', 'Contention Percentage (Writers)',
-              'Number of Readers', 'Number of Read Cycles', 'Keys Distribution Strategy (Readers)',
-              'Contention Percentage (Readers)', 'Number of cycles']
+xAxisLabel = ['Number of Keys','Key length in bytes','Number of Threads',
+              'Number of read / write Cycles', 'Read / Write ratio', 'Key set overlapping',
+              'Number of benchmark runs']
 
 numSteps = 10
 
@@ -59,15 +58,11 @@ def getParamLines(set):
     else:
 		step = (int(varRange[1])-int(varRange[0]))/numSteps
 		x = int(varRange[0])
-		while (x <= int(varRange[1])):
+		while (x < int(varRange[1])):
 			tempLine = args[:]
 			tempLine[varPosition] = str(x)
 			lines.append(' '.join(tempLine))
 			x = x+step
-#        for x in range(int(varRange[0]), int(varRange[1])):
-#            tempLine = args[:]
-#            tempLine[varPosition] = str(x)
-#            lines.append(' '.join(tempLine))
     return lines
 
 def getAverage(output):
