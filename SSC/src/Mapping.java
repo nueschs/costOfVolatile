@@ -73,8 +73,8 @@ public class Mapping {
 				
 				@Override
 				public void run() {
+					int count = (localCount*RW_RATIO) % 100;
 					for(int j = 0; j < NUM_CYCLES; j++){
-						int count = localCount*RW_RATIO;
 						for (int k = 0; k < this.keyPositions.length; k++){
 							if (count >= 100){
 								pairs[keyPositions[k]].setData(this.r.nextLong());
