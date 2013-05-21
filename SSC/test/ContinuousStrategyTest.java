@@ -2,7 +2,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ContinuousStrategyTest extends AbstractStrategyTest {
+public class ContinuousStrategyTest {
+
+	private ContinuousStrategy strategy;
 
 	@Before
 	public void setup() {
@@ -10,50 +12,48 @@ public class ContinuousStrategyTest extends AbstractStrategyTest {
 	}
 
 	@Test
-	public void testAllThreads() {
-		int[] expected10_0 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-		int[] expected10_3 = { 3, 4, 5, 6, 7, 8, 9, 0, 1, 2 };
-		int[] expected10_7 = { 7, 8, 9, 0, 1, 2, 3, 4, 5, 6 };
-		Assert.assertArrayEquals(expected10_0, this.strategy.getWritePositions(0, 10, 8, 1));
-		Assert.assertArrayEquals(expected10_0, this.strategy.getWritePositions(3, 10, 8, 1));
-		Assert.assertArrayEquals(expected10_0, this.strategy.getWritePositions(7, 10, 8, 1));
+	public void testFullContention() {
+		int[] expected10_8_0 = { 0 };
+		Assert.assertArrayEquals(expected10_8_0, this.strategy.getKeyPositions(0, 10, 8, 1));
+		Assert.assertArrayEquals(expected10_8_0, this.strategy.getKeyPositions(3, 10, 8, 1));
+		Assert.assertArrayEquals(expected10_8_0, this.strategy.getKeyPositions(7, 10, 8, 1));
 
-		int[] expected13 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-		Assert.assertArrayEquals(expected13, this.strategy.getWritePositions(0, 13, 16, 1));
-		Assert.assertArrayEquals(expected13, this.strategy.getWritePositions(7, 13, 16, 1));
-		Assert.assertArrayEquals(expected13, this.strategy.getWritePositions(11, 13, 16, 1));
-		Assert.assertArrayEquals(expected13, this.strategy.getWritePositions(15, 13, 16, 1));
+		int[] expected13_7_0 = { 0 };
+		Assert.assertArrayEquals(expected13_7_0, this.strategy.getKeyPositions(0, 13, 7, 1));
+
+		int[] expected100_13_0 = { 0, 1, 2, 3, 4, 5, 6 };
+		Assert.assertArrayEquals(expected100_13_0, this.strategy.getKeyPositions(0, 100, 13, 1));
+		Assert.assertArrayEquals(expected100_13_0, this.strategy.getKeyPositions(3, 100, 13, 1));
+		Assert.assertArrayEquals(expected100_13_0, this.strategy.getKeyPositions(12, 100, 13, 1));
 	}
 
 	@Test
-	public void testDistribution() {
-		int[] expected13_8_3_30 = { 12, 0, 1, 2 };
-		int[] expected50_16_4_30 = { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-		int[] expected27_6_0_25 = { 0, 1, 2, 3, 4, 5, 6 };
+	public void testNoContention() {
+		int[] expected10_8_0 = { 0 };
+		int[] expected10_8_1 = { 1 };
+		int[] expected10_8_7 = { 7 };
+		Assert.assertArrayEquals(expected10_8_0, this.strategy.getKeyPositions(0, 10, 8, 0));
+		Assert.assertArrayEquals(expected10_8_1, this.strategy.getKeyPositions(1, 10, 8, 0));
+		Assert.assertArrayEquals(expected10_8_7, this.strategy.getKeyPositions(7, 10, 8, 0));
 
-		Assert.assertArrayEquals(expected13_8_3_30, this.strategy.getWritePositions(3, 13, 8, 0.3f));
-		Assert.assertArrayEquals(expected50_16_4_30, this.strategy.getWritePositions(4, 50, 16, 0.3f));
-		Assert.assertArrayEquals(expected27_6_0_25, this.strategy.getWritePositions(0, 27, 6, 0.25f));
+		int[] expected100_13_0 = { 0, 1, 2, 3, 4, 5, 6 };
+		int[] expected100_13_1 = { 7, 8, 9, 10, 11, 12, 13 };
+		int[] expected100_13_12 = { 84, 85, 86, 87, 88, 89, 90 };
+		Assert.assertArrayEquals(expected100_13_0, this.strategy.getKeyPositions(0, 100, 13, 0));
+		Assert.assertArrayEquals(expected100_13_1, this.strategy.getKeyPositions(1, 100, 13, 0));
+		Assert.assertArrayEquals(expected100_13_12, this.strategy.getKeyPositions(12, 100, 13, 0));
 	}
 
 	@Test
-	public void testSingleThread() {
-		int[] expected12_8_0 = { 0, 1 };
-		int[] expected12_8_3 = { 6, 7 };
-		int[] expected12_8_7 = { 11 };
+	public void testVariousContentionLevels() {
+		int[] expected10_8_0_50 = { 0 };
+		Assert.assertArrayEquals(expected10_8_0_50, this.strategy.getKeyPositions(0, 10, 8, 0.5f));
 
-		Assert.assertArrayEquals(expected12_8_0, this.strategy.getWritePositions(0, 12, 8, 0));
-		Assert.assertArrayEquals(expected12_8_3, this.strategy.getWritePositions(3, 12, 8, 0));
-		Assert.assertArrayEquals(expected12_8_7, this.strategy.getWritePositions(7, 12, 8, 0));
+		int[] expected100_10_7_30 = { 49, 50, 51, 52, 53, 54, 55, 56, 57, 58 };
+		Assert.assertArrayEquals(expected100_10_7_30, this.strategy.getKeyPositions(7, 100, 10, 0.3f));
 
-		int[] expected55_13_0 = { 0, 1, 2, 3, 4 };
-		int[] expected55_13_5 = { 23, 24, 25, 26 };
-		int[] expected55_13_9 = { 39, 40, 41, 42 };
-		int[] expected55_13_12 = { 51, 52, 53, 54 };
-		Assert.assertArrayEquals(expected55_13_0, this.strategy.getWritePositions(0, 55, 13, 0));
-		Assert.assertArrayEquals(expected55_13_5, this.strategy.getWritePositions(5, 55, 13, 0));
-		Assert.assertArrayEquals(expected55_13_9, this.strategy.getWritePositions(9, 55, 13, 0));
-		Assert.assertArrayEquals(expected55_13_12, this.strategy.getWritePositions(12, 55, 13, 0));
+		int[] expected10_8_7_50 = { 3 };
+		Assert.assertArrayEquals(expected10_8_7_50, this.strategy.getKeyPositions(7, 10, 8, 0.5f));
 	}
 
 }

@@ -4,17 +4,17 @@ public class Mapping {
 
 	/**
 	 * @param args
-	 *            args[0] number of keys, args[1] = key length, args[2] key
-	 *            distribution strategy, args[3] = Number of producer threads,
-	 *            args[4] = number of consumer threads, args[5] = number of
-	 *            write cycles for each writer thread, args[6] = number of read
-	 *            cycles, args[7] number of benchmark cycles
+	 *            args[0] number of keys, args[1] = key length, args[3] = Number
+	 *            of producer threads, args[4] = number of consumer threads,
+	 *            args[5] = number of write cycles for each writer thread,
+	 *            args[6] = number of read cycles, args[7] number of benchmark
+	 *            cycles
 	 * 
 	 * @throws InterruptedException
 	 */
 	public static void main(String[] args) throws InterruptedException {
 
-		final int NUM_CYCLES = Integer.parseInt(args[10]);
+		final int NUM_CYCLES = Integer.parseInt(args[8]);
 
 		final Mapping mapping = new Mapping(args);
 		for (int i = 0; i < 10; i++) {
@@ -30,12 +30,12 @@ public class Mapping {
 
 	private final int NUM_WRITERS;
 	private final int NUM_WRITES;
-	private final KeyDistributionStrategy WRITER_KEY_STRATEGY;
+	private final ContinuousStrategy WRITER_KEY_STRATEGY;
 	private final float WRITER_CONTENTION_PRECENTAGE;
 
 	private final int NUM_READERS;
 	private final int NUM_READS;
-	private final KeyDistributionStrategy READER_KEY_STRATEGY;
+	private final ContinuousStrategy READER_KEY_STRATEGY;
 	private final float READER_CONTENTION_PRECENTAGE;
 
 	private final Pair[] pairs;
@@ -50,21 +50,13 @@ public class Mapping {
 
 		this.NUM_WRITERS = Integer.parseInt(args[2]);
 		this.NUM_WRITES = Integer.parseInt(args[3]);
-		int writeStrat = Integer.parseInt(args[4]);
-		if (writeStrat < 0 || writeStrat > 1) {
-			throw new IllegalArgumentException("Only 0 and 1 are allowed values for key strategy");
-		}
-		this.WRITER_KEY_STRATEGY = writeStrat == 0 ? new ContinuousStrategy() : new DistributedStrategy();
-		this.WRITER_CONTENTION_PRECENTAGE = Float.parseFloat(args[5]);
+		this.WRITER_KEY_STRATEGY = new ContinuousStrategy();
+		this.WRITER_CONTENTION_PRECENTAGE = Float.parseFloat(args[4]);
 
-		this.NUM_READERS = Integer.parseInt(args[6]);
-		this.NUM_READS = Integer.parseInt(args[7]);
-		int readStrat = Integer.parseInt(args[8]);
-		if (readStrat < 0 || readStrat > 1) {
-			throw new IllegalArgumentException("Only 0 and 1 are allowed values for key strategy");
-		}
-		this.READER_KEY_STRATEGY = readStrat == 0 ? new ContinuousStrategy() : new DistributedStrategy();
-		this.READER_CONTENTION_PRECENTAGE = Float.parseFloat(args[9]);
+		this.NUM_READERS = Integer.parseInt(args[5]);
+		this.NUM_READS = Integer.parseInt(args[6]);
+		this.READER_KEY_STRATEGY = new ContinuousStrategy();
+		this.READER_CONTENTION_PRECENTAGE = Float.parseFloat(args[7]);
 
 		this.pairs = new Pair[this.KEYS.length];
 
@@ -82,7 +74,7 @@ public class Mapping {
 			final int localCount = i;
 			threads[i] = new Thread() {
 
-				int[] writePositions = Mapping.this.WRITER_KEY_STRATEGY.getWritePositions(localCount, Mapping.this.KEYS.length, Mapping.this.NUM_WRITERS,
+				int[] writePositions = Mapping.this.WRITER_KEY_STRATEGY.getKeyPositions(localCount, Mapping.this.KEYS.length, Mapping.this.NUM_WRITERS,
 						Mapping.this.WRITER_CONTENTION_PRECENTAGE);
 
 				Random r = new Random();
@@ -104,7 +96,7 @@ public class Mapping {
 			final int localCount = i;
 			threads[i + this.NUM_WRITERS] = new Thread() {
 
-				int[] readPositions = Mapping.this.READER_KEY_STRATEGY.getWritePositions(localCount, Mapping.this.KEYS.length, Mapping.this.NUM_READERS,
+				int[] readPositions = Mapping.this.READER_KEY_STRATEGY.getKeyPositions(localCount, Mapping.this.KEYS.length, Mapping.this.NUM_READERS,
 						Mapping.this.READER_CONTENTION_PRECENTAGE);
 
 				@Override

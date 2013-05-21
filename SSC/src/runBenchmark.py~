@@ -57,17 +57,16 @@ def getParamLines(set):
             x += step
             lines.append(' '.join(tempLine))
     else:
-		step = (int(varRange[1])-int(varRange[0]))/numSteps
-		x = int(varRange[0])
-		while (x <= int(varRange[1])):
-			tempLine = args[:]
-			tempLine[varPosition] = str(x)
-			lines.append(' '.join(tempLine))
-			x = x+step
-#        for x in range(int(varRange[0]), int(varRange[1])):
-#            tempLine = args[:]
-#            tempLine[varPosition] = str(x)
-#            lines.append(' '.join(tempLine))
+	step = (int(varRange[1]-int(varRange[0]))/numSteps
+	x = varRange[0]
+	while (x <= varRange[1]):
+		tempLine = args[:]
+§		tempLine[varPosition] = str(x)
+		lines.append(' '.join(tempLine))
+        for x in range(int(varRange[0]), int(varRange[1])):
+            tempLine = args[:]
+            tempLine[varPosition] = str(x)
+            lines.append(' '.join(tempLine))
     return lines
 
 def getAverage(output):
