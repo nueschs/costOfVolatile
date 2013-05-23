@@ -1,3 +1,4 @@
+package ch.unibnf.ssc.vol;
 import java.util.Random;
 
 public class Mapping {
