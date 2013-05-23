@@ -1,3 +1,4 @@
+package ch.unibnf.ssc.vol;
 //public class VariableContentionStrategy implements KeyDistributionStrategy {
 //
 //	/**

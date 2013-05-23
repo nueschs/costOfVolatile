@@ -1,3 +1,4 @@
+package ch.unibnf.ssc.vol;
 import java.util.Random;
 
 public class Mapping {
@@ -80,7 +81,7 @@ public class Mapping {
 								pairs[keyPositions[k]].setData(this.r.nextLong());
 								count = 0;
 							} else {
-								long temp = Mapping.this.pairs[this.keyPositions[k]].getData();
+								Mapping.this.pairs[this.keyPositions[k]].getData();
 								count += RW_RATIO;
 							}
 						}

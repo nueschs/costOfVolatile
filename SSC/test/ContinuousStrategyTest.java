@@ -2,6 +2,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import ch.unibnf.ssc.vol.ContinuousStrategy;
+
 public class ContinuousStrategyTest {
 
 	private ContinuousStrategy strategy;

@@ -1,3 +1,4 @@
+package ch.unibnf.ssc.vol;
 public class ContinuousStrategy {
 
 	public int[] getKeyPositions(int pos, int numTotalKeys, int numThreads, double oVERLAPPING) {

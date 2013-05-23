@@ -132,7 +132,7 @@ for set in sets:
             os.remove(completeDataFileBase+set.replace(' ','_'))
     for paramLine in getParamLines(set):
         print 'Running with parameters ' + paramLine
-        sp = subprocess.Popen('java -server -cp ../bin/ Mapping  ' + paramLine, shell=True, stdout=subprocess.PIPE)
+        sp = subprocess.Popen('java -server -cp ../bin/ ch.unibnf.ssc.vol.Mapping  ' + paramLine, shell=True, stdout=subprocess.PIPE)
         #sp = subprocess.Popen('java -Xms2m -Xmx2m -server Mapping ' + paramLine, shell=True, stdout=subprocess.PIPE)
         output = sp.communicate()[0]
         avg = getAverage(output)
