@@ -77,8 +77,9 @@ public class Mapping {
 					int count = (localCount*RW_RATIO) % 100;
 					for(int j = 0; j < NUM_CYCLES; j++){
 						for (int k = 0; k < this.keyPositions.length; k++){
+							int data = count*k;
 							if (count >= 100){
-								pairs[keyPositions[k]].setData(this.r.nextLong());
+								pairs[keyPositions[k]].setData(data);
 								count = 0;
 							} else {
 								Mapping.this.pairs[this.keyPositions[k]].getData();
