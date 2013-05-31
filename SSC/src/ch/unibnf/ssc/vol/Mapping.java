@@ -1,5 +1,4 @@
 package ch.unibnf.ssc.vol;
-import java.util.Random;
 
 public class Mapping {
 
@@ -70,7 +69,6 @@ public class Mapping {
 			threads[i] = new Thread(){
 				
 				int[] keyPositions = distributionHelper.getKeyPositions(localCount, KEYS.length, NUM_THREADS, OVERLAPPING);
-				Random r = new Random();
 				
 				@Override
 				public void run() {

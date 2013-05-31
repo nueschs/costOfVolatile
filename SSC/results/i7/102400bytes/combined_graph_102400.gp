@@ -1,0 +1,20 @@
+#set style line 1 lt 1 lc rgb "#FF0000" lw 3 # red
+set terminal png size 1024,768 font "Helvetica, 10" lw 1
+set ylabel font "Helvetica, 10"
+set output "combined_graph_102400.png";
+set ylabel 'time in ms' font 'Helvetica, 10' textcolor rgb '#000000';
+set xlabel 'Key Set Overlapping' font 'Helvetica, 10' textcolor rgb '#000000';
+set style line 12 lc rgb '#808080' lt 0 lw 1
+set style line 11 lc rgb '#808080' lt 0 lw 1
+set grid back ls 11 
+set title "102400 byte keys, I7 Quad Core"
+set key top left;
+set yrange [:];
+set xrange [:];
+plot '100_102400_16_500000_0_0.0-1.0_100.txt' using ($1):($2*0.000001):($3*0.000001):($4*0.000001) with linespoints ps 1 title 'Only reads ',\
+	'100_102400_16_500000_10_0.0-1.0_100.txt' using ($1):($2*0.000001):($3*0.000001):($4*0.000001) with linespoints ps 1 title '10% writes',\
+	'100_102400_16_500000_30_0.0-1.0_100.txt' using ($1):($2*0.000001):($3*0.000001):($4*0.000001) with linespoints ps 1 title '30% writes',\
+	'100_102400_16_500000_50_0.0-1.0_100.txt' using ($1):($2*0.000001):($3*0.000001):($4*0.000001) with linespoints ps 1 title '50% writes',\
+	'100_102400_16_500000_70_0.0-1.0_100.txt' using ($1):($2*0.000001):($3*0.000001):($4*0.000001) with linespoints ps 1 title '70% writes',\
+	'100_102400_16_500000_90_0.0-1.0_100.txt' using ($1):($2*0.000001):($3*0.000001):($4*0.000001) with linespoints ps 1 title '90% writes',\
+	'100_102400_16_500000_100_0.0-1.0_100.txt' using ($1):($2*0.000001):($3*0.000001):($4*0.000001) with linespoints ps 1 title 'Only writes';
